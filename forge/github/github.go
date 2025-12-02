@@ -210,7 +210,7 @@ func (*Client) RepositoryDirname(repo common.Repository) string {
 		// Sorry
 		panic("invalid repository id")
 	}
-	return owner + "_" + repoName + "_" + repo.CommitHash
+	return owner + "#" + repoName + "#" + repo.CommitHash
 }
 
 func isRateLimitError(err error) bool {
