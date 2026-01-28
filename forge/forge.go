@@ -8,8 +8,8 @@ import (
 type Forge interface {
 	Search(criteria common.SearchCriteria) ([]common.Repository, error)
 	LatestCommitHash(id string) (string, error)
-	Checkout(path string, repo common.Repository) error
-	RepositoryDirname(repo common.Repository) string
+	Checkout(path string, repo common.Repository, full bool) error
+	RepositoryDirname(repo common.Repository, full bool) string
 }
 
 func CreateClient(ty common.Forge) Forge {

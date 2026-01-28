@@ -14,6 +14,9 @@ import (
 	"time"
 
 	"git.sr.ht/~hannes/clonya/common"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
+	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/google/go-github/v76/github"
 )
 
@@ -23,11 +26,19 @@ func NewClient() Client {
 	if found {
 		githubClient = githubClient.WithAuthToken(accessToken)
 	}
-	return Client{client: githubClient}
+	return Client{client: githubClient, accessToken: accessToken}
 }
 
 type Client struct {
-	client *github.Client
+	client      *github.Client
+	accessToken string
+}
+
+func (c *Client) gitAuth() *githttp.BasicAuth {
+	return &githttp.BasicAuth{
+		Username: "admin", // not really, it's just a placeholder
+		Password: c.accessToken,
+	}
 }
 
 func (c *Client) Search(criteria common.SearchCriteria) ([]common.Repository, error) {
@@ -102,9 +113,9 @@ func (c *Client) Search(criteria common.SearchCriteria) ([]common.Repository, er
 }
 
 func (c *Client) LatestCommitHash(id string) (string, error) {
-	owner, repo, found := strings.Cut(id, "/")
-	if !found {
-		return "", errors.New("invalid repository id")
+	owner, repo, err := ParseRepositoryId(id)
+	if err != nil {
+		return "", err
 	}
 	ctx := context.WithValue(context.Background(), github.SleepUntilPrimaryRateLimitResetWhenRateLimited, true)
 	repository, _, err := c.client.Repositories.Get(ctx, owner, repo)
@@ -116,9 +127,9 @@ func (c *Client) LatestCommitHash(id string) (string, error) {
 }
 
 func (c *Client) LatestCommitHashForBranch(id, branch string) (string, error) {
-	owner, repo, found := strings.Cut(id, "/")
-	if !found {
-		return "", errors.New("invalid repository id")
+	owner, repo, err := ParseRepositoryId(id)
+	if err != nil {
+		return "", err
 	}
 	ctx := context.WithValue(context.Background(), github.SleepUntilPrimaryRateLimitResetWhenRateLimited, true)
 	branchData, _, err := c.client.Repositories.GetBranch(ctx, owner, repo, branch, 10)
@@ -130,15 +141,42 @@ func (c *Client) LatestCommitHashForBranch(id, branch string) (string, error) {
 	return branchData.GetCommit().GetSHA(), nil
 }
 
-func (c *Client) Checkout(path string, repository common.Repository) error {
-	owner, repo, found := strings.Cut(repository.Id, "/")
-	if !found {
-		return errors.New("invalid repository id")
-	}
-	checkoutDirname := filepath.Join(path, c.RepositoryDirname(repository))
-	if _, err := os.Stat(checkoutDirname); !os.IsNotExist(err) {
+func (c *Client) Checkout(path string, repository common.Repository, full bool) error {
+	checkoutDirname := filepath.Join(path, c.RepositoryDirname(repository, full))
+	_, err := os.Stat(checkoutDirname)
+	dirExists := !os.IsNotExist(err)
+	if dirExists && !full {
 		// Already checked out, no need to download again
 		return nil
+	} else if !full {
+		return c.checkoutSingleCommit(path, repository)
+	} else {
+		start := time.Now()
+		if !dirExists {
+			err = c.clone(path, repository)
+			if err != nil {
+				return err
+			}
+		}
+		err = c.checkout(path, repository)
+		if err != nil {
+			return err
+		}
+		end := time.Now()
+		waitTime := time.Second - (end.Sub(start))
+		if waitTime > 0 {
+			// A poor man's rate limiting
+			time.Sleep(waitTime)
+		}
+		return nil
+	}
+}
+
+func (c *Client) checkoutSingleCommit(path string, repository common.Repository) error {
+	checkoutDirname := filepath.Join(path, c.RepositoryDirname(repository, false))
+	owner, repo, err := ParseRepositoryId(repository.Id)
+	if err != nil {
+		return err
 	}
 
 	ctx := context.WithValue(context.Background(), github.SleepUntilPrimaryRateLimitResetWhenRateLimited, true)
@@ -192,25 +230,105 @@ func (c *Client) Checkout(path string, repository common.Repository) error {
 		return err
 	}
 
+	return moveOutOfTmp(tmpDir, checkoutDirname)
+}
+
+func (c *Client) clone(path string, repository common.Repository) error {
+	checkoutDirname := filepath.Join(path, c.RepositoryDirname(repository, true))
+	owner, repo, err := ParseRepositoryId(repository.Id)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.WithValue(context.Background(), github.SleepUntilPrimaryRateLimitResetWhenRateLimited, true)
+
+	repoInfo, _, err := c.client.Repositories.Get(ctx, owner, repo)
+	if err != nil {
+		return err
+	} else if repoInfo.CloneURL == nil {
+		return errors.New("no clone url received")
+	}
+
+	err = os.Mkdir(checkoutDirname, 0755)
+	if err != nil {
+		return err
+	}
+
+	_, err = git.PlainClone(checkoutDirname, false, &git.CloneOptions{
+		URL:  *repoInfo.CloneURL,
+		Auth: c.gitAuth(),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func moveOutOfTmp(tmpDir, checkoutDirname string) error {
 	tmpDirEntries, err := os.ReadDir(tmpDir)
 	if err != nil {
 		return err
 	}
 	if len(tmpDirEntries) == 0 {
-		return errors.New("no source code was extracted")
+		return errors.New("no source code was cloned")
 	}
 	err = os.Rename(filepath.Join(tmpDir, tmpDirEntries[0].Name()), checkoutDirname)
-
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func (*Client) RepositoryDirname(repo common.Repository) string {
-	owner, repoName, found := strings.Cut(repo.Id, "/")
-	if !found {
-		// Sorry
-		panic("invalid repository id")
+func (c *Client) checkout(path string, repository common.Repository) error {
+	checkoutDirname := filepath.Join(path, c.RepositoryDirname(repository, true))
+	repo, err := git.PlainOpen(checkoutDirname)
+	if err != nil {
+		return err
 	}
-	return owner + "#" + repoName + "#" + repo.CommitHash
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return err
+	}
+	err = worktree.Checkout(&git.CheckoutOptions{
+		Hash: plumbing.NewHash(repository.CommitHash),
+	})
+	if err != nil {
+		// Fetch and try again
+		err = repo.Fetch(&git.FetchOptions{
+			Auth: c.gitAuth(),
+		})
+		if err != nil {
+			return err
+		}
+		err = worktree.Checkout(&git.CheckoutOptions{
+			Hash: plumbing.NewHash(repository.CommitHash),
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func ParseRepositoryId(id string) (string, string, error) {
+	owner, repoName, found := strings.Cut(id, "/")
+	if !found {
+		return "", "", errors.New("invalid repository id")
+	}
+	return owner, repoName, nil
+}
+
+func (*Client) RepositoryDirname(repo common.Repository, full bool) string {
+	owner, repoName, err := ParseRepositoryId(repo.Id)
+	if err != nil {
+		panic(err)
+	}
+	name := owner + "#" + repoName
+	if !full {
+		name += "#" + repo.CommitHash
+	}
+	return name
 }
 
 func isRateLimitError(err error) bool {

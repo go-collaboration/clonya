@@ -11,6 +11,7 @@ import (
 )
 
 type initCmd struct {
+	full           bool
 	searchCriteria common.SearchCriteria
 	dbPath         string
 	maxCreateStr   string
@@ -41,6 +42,7 @@ func (i *initCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&i.minPushStr, "minpush", past, "the minimum push date of the repository")
 	f.IntVar(&i.searchCriteria.MinStars, "minstars", 0, "the minimum number of stars")
 	f.BoolVar(&i.searchCriteria.AllowArchived, "no-archived", false, "disallow archived repositories")
+	f.BoolVar(&i.full, "full", false, "clone the entire git repository in the checkout step instead of just a single commit")
 }
 
 func (i *initCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...any) subcommands.ExitStatus {

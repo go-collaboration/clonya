@@ -48,10 +48,20 @@ func (c *checkoutCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...any) subc
 	exitCode := subcommands.ExitSuccess
 	forgeClient := forge.CreateClient(db.searchCriteria.Forge)
 
+	for _, repo := range db.repositories {
+		log.Println("checking out", repo.Id)
+		err := forgeClient.Checkout(c.repoPath, repo, db.full)
+		if err != nil {
+			log.Printf("warning: unable to checkout %s: %v\n", repo.Id, err)
+			exitCode = subcommands.ExitFailure
+			continue
+		}
+	}
+
 	if c.clean {
 		expectedNames := make([]string, 0, len(db.repositories))
 		for _, repo := range db.repositories {
-			expectedNames = append(expectedNames, forgeClient.RepositoryDirname(repo))
+			expectedNames = append(expectedNames, forgeClient.RepositoryDirname(repo, db.full))
 		}
 
 		storedCheckouts, err := os.ReadDir(c.repoPath)
@@ -67,16 +77,6 @@ func (c *checkoutCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...any) subc
 				log.Println("deleting outdated repository checkout", dir.Name())
 				os.RemoveAll(filepath.Join(c.repoPath, dir.Name()))
 			}
-		}
-	}
-
-	for _, repo := range db.repositories {
-		log.Println("checking out", repo.Id)
-		err := forgeClient.Checkout(c.repoPath, repo)
-		if err != nil {
-			log.Printf("warning: unable to checkout %s: %v\n", repo.Id, err)
-			exitCode = subcommands.ExitFailure
-			continue
 		}
 	}
 

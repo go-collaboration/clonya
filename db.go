@@ -12,6 +12,7 @@ import (
 
 type database struct {
 	searchCriteria common.SearchCriteria
+	full           bool
 	repositories   []common.Repository
 }
 
@@ -29,15 +30,40 @@ func ReadDatabase(path string) (database, error) {
 		return db, err
 	}
 
-	if parsed[0].AsList()[0].AsAtom() != "searchCriteria" {
-		return db, errors.New("database does not start with searchCriteria node")
+	searchCriteriaFound := false
+	db.repositories = make([]common.Repository, 0, len(parsed)-1)
+	for _, node := range parsed {
+		l := node.AsList()
+		switch l[0].AsAtom() {
+		case "searchCriteria":
+			err = parseSearchCriteria(&db, l)
+			if err != nil {
+				return db, err
+			}
+			searchCriteriaFound = true
+		case "repository":
+			id := l[1].AsAtom()
+			hash := l[2].AsAtom()
+			db.repositories = append(db.repositories, common.Repository{Id: string(id), CommitHash: string(hash)})
+		case "full":
+			db.full = true
+		}
 	}
-	searchCriteriaList := parsed[0].AsList()[1:]
+
+	if !searchCriteriaFound {
+		return db, errors.New("database does not contain a searchCriteria node")
+	}
+
+	return db, nil
+}
+
+func parseSearchCriteria(db *database, node laser.List) error {
+	searchCriteriaList := node[1:]
 	for _, criteria := range searchCriteriaList {
 		cList := criteria.AsList()
 		propName := cList[0].AsAtom()
 		propValue := string(cList[1].AsAtom())
-		err = nil
+		err := error(nil)
 		switch propName {
 		case "allowArchived":
 			db.searchCriteria.AllowArchived, err = strconv.ParseBool(propValue)
@@ -62,22 +88,13 @@ func ReadDatabase(path string) (database, error) {
 		case "maxStars":
 			db.searchCriteria.MaxStars, err = strconv.Atoi(propValue)
 		default:
-			return db, errors.New("unknown search criterion " + string(propName))
+			return errors.New("unknown search criterion " + string(propName))
 		}
 		if err != nil {
-			return db, fmt.Errorf("unable to read search criterion %s: %v", propName, err)
+			return fmt.Errorf("unable to read search criterion %s: %v", propName, err)
 		}
 	}
-
-	db.repositories = make([]common.Repository, 0, len(parsed)-1)
-	for _, repoObj := range parsed[1:] {
-		r := repoObj.AsList()
-		id := r[1].AsAtom()
-		hash := r[2].AsAtom()
-		db.repositories = append(db.repositories, common.Repository{Id: string(id), CommitHash: string(hash)})
-	}
-
-	return db, nil
+	return nil
 }
 
 func WriteDatabase(db database, path string) error {
@@ -107,6 +124,13 @@ func WriteDatabase(db database, path string) error {
 	_, err = output.WriteString("\n")
 	if err != nil {
 		return err
+	}
+
+	if db.full {
+		_, err = output.WriteString("(full)\n")
+		if err != nil {
+			return err
+		}
 	}
 
 	for _, repo := range db.repositories {
