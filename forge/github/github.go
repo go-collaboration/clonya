@@ -151,7 +151,6 @@ func (c *Client) Checkout(path string, repository common.Repository, full bool) 
 	} else if !full {
 		return c.checkoutSingleCommit(path, repository)
 	} else {
-		start := time.Now()
 		if !dirExists {
 			err = c.clone(path, repository)
 			if err != nil {
@@ -161,12 +160,6 @@ func (c *Client) Checkout(path string, repository common.Repository, full bool) 
 		err = c.checkout(path, repository)
 		if err != nil {
 			return err
-		}
-		end := time.Now()
-		waitTime := time.Second - (end.Sub(start))
-		if waitTime > 0 {
-			// A poor man's rate limiting
-			time.Sleep(waitTime)
 		}
 		return nil
 	}
