@@ -284,7 +284,9 @@ func (c *Client) checkout(path string, repository common.Repository) error {
 		return err
 	}
 	err = worktree.Checkout(&git.CheckoutOptions{
-		Hash: plumbing.NewHash(repository.CommitHash),
+		Force: true,
+		Keep:  false,
+		Hash:  plumbing.NewHash(repository.CommitHash),
 	})
 	if err != nil {
 		// Fetch and try again
@@ -295,7 +297,9 @@ func (c *Client) checkout(path string, repository common.Repository) error {
 			return err
 		}
 		err = worktree.Checkout(&git.CheckoutOptions{
-			Hash: plumbing.NewHash(repository.CommitHash),
+			Force: true,
+			Keep:  false,
+			Hash:  plumbing.NewHash(repository.CommitHash),
 		})
 		if err != nil {
 			return err
