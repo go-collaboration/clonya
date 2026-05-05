@@ -4,8 +4,8 @@ go 1.25.3
 
 require (
 	git.sr.ht/~hannes/laser v1.0.0
-	github.com/go-git/go-git/v5 v5.16.5
-	github.com/google/go-github/v83 v83.0.0
+	github.com/go-git/go-git/v5 v5.18.0
+	github.com/google/go-github/v85 v85.0.0
 	github.com/google/subcommands v1.2.0
 )
 
@@ -13,11 +13,11 @@ require (
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.1.6 // indirect
-	github.com/cloudflare/circl v1.6.1 // indirect
+	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
-	github.com/go-git/go-billy/v5 v5.6.2 // indirect
+	github.com/go-git/go-billy/v5 v5.8.0 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect

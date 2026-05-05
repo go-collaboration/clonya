@@ -17,7 +17,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
-	"github.com/google/go-github/v83/github"
+	"github.com/google/go-github/v85/github"
 )
 
 func NewClient() Client {
