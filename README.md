@@ -26,6 +26,8 @@ To checkout the repositories, run:
 
     clonya checkout -db go-repos.se -o clonya-go-repos
 
+Use `clonya help <subcommand>` to print all available options for a subcommand.
+
 ## License
 
 [EUPL](LICENSE)
