@@ -105,6 +105,7 @@ func (c *Client) Search(criteria common.SearchCriteria) ([]common.Repository, er
 
 		// Get next page if available
 		if resp.NextPage == 0 {
+			log.Println("no next page available")
 			break
 		}
 		opt.Page = resp.NextPage
