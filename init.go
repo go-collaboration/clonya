@@ -38,6 +38,7 @@ func (i *initCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&i.maxCreateStr, "maxcreate", future, "the maximum creation date of the repository")
 	f.StringVar(&i.maxPushStr, "maxpush", future, "the maximum push date of the repository")
 	f.IntVar(&i.searchCriteria.MaxStars, "maxstars", -1, "the maximum number of stars")
+	f.IntVar(&i.searchCriteria.MinCommits, "mincommits", 0, "the minimum number of commits")
 	f.StringVar(&i.minCreateStr, "mincreate", past, "the minimum creation date of the repository")
 	f.StringVar(&i.minPushStr, "minpush", past, "the minimum push date of the repository")
 	f.IntVar(&i.searchCriteria.MinStars, "minstars", 0, "the minimum number of stars")

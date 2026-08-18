@@ -75,6 +75,8 @@ func parseSearchCriteria(db *database, node laser.List) error {
 			db.searchCriteria.Language = propValue
 		case "limit":
 			db.searchCriteria.Limit, err = strconv.Atoi(propValue)
+		case "minCommits":
+			db.searchCriteria.MinCommits, err = strconv.Atoi(propValue)
 		case "minCreateDate":
 			db.searchCriteria.MinCreateDate, err = time.Parse(time.DateOnly, propValue)
 		case "minPushDate":
@@ -110,6 +112,7 @@ func WriteDatabase(db database, path string) error {
 	searchCriteriaNode = append(searchCriteriaNode, laser.List{laser.Atom("forge"), laser.Atom(db.searchCriteria.Forge)})
 	searchCriteriaNode = append(searchCriteriaNode, laser.List{laser.Atom("lang"), laser.Atom(db.searchCriteria.Language)})
 	searchCriteriaNode = append(searchCriteriaNode, laser.List{laser.Atom("limit"), laser.Atom(strconv.Itoa(db.searchCriteria.Limit))})
+	searchCriteriaNode = append(searchCriteriaNode, laser.List{laser.Atom("minCommits"), laser.Atom(strconv.Itoa(db.searchCriteria.MinCommits))})
 	searchCriteriaNode = append(searchCriteriaNode, laser.List{laser.Atom("minCreateDate"), laser.Atom(db.searchCriteria.MinCreateDate.Format(time.DateOnly))})
 	searchCriteriaNode = append(searchCriteriaNode, laser.List{laser.Atom("minPushDate"), laser.Atom(db.searchCriteria.MinPushDate.Format(time.DateOnly))})
 	searchCriteriaNode = append(searchCriteriaNode, laser.List{laser.Atom("minStars"), laser.Atom(strconv.Itoa(db.searchCriteria.MinStars))})

@@ -87,6 +87,17 @@ func (c *Client) Search(criteria common.SearchCriteria) ([]common.Repository, er
 		// Process results
 		for _, repo := range (*foundRepos).Repositories {
 			id := repo.GetFullName()
+			if criteria.MinCommits > 0 {
+				log.Println("retrieving commit count for", id)
+				commits, err := c.commitCount(id)
+				if err != nil {
+					log.Printf("warning: unable to count commits for %s, skipping: %v\n", id, err)
+					continue
+				}
+				if commits < criteria.MinCommits {
+					continue
+				}
+			}
 			log.Println("retrieving latest commit hash for", id)
 			hash, err := c.LatestCommitHashForBranch(id, repo.GetDefaultBranch())
 			if err != nil {
@@ -111,6 +122,23 @@ func (c *Client) Search(criteria common.SearchCriteria) ([]common.Repository, er
 		opt.Page = resp.NextPage
 	}
 	return repos, nil
+}
+
+func (c *Client) commitCount(id string) (int, error) {
+	owner, repo, err := ParseRepositoryId(id)
+	if err != nil {
+		return 0, err
+	}
+	ctx := context.WithValue(context.Background(), github.SleepUntilPrimaryRateLimitResetWhenRateLimited, true)
+	commits, resp, err := c.client.Repositories.ListCommits(ctx, owner, repo, &github.CommitsListOptions{ListOptions: github.ListOptions{PerPage: 1}})
+	isRateLimitError(err)
+	if err != nil {
+		return 0, err
+	}
+	if resp.LastPage > 0 {
+		return resp.LastPage, nil
+	}
+	return len(commits), nil
 }
 
 func (c *Client) LatestCommitHash(id string) (string, error) {

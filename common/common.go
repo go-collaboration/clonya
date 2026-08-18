@@ -19,6 +19,7 @@ type SearchCriteria struct {
 	AllowForks    bool
 	MinStars      int
 	MaxStars      int
+	MinCommits    int
 	AllowArchived bool
 }
 
