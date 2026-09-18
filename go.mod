@@ -3,7 +3,7 @@ module git.sr.ht/~hannes/clonya
 go 1.25.3
 
 require (
-	git.sr.ht/~hannes/laser v1.0.0
+	git.sr.ht/~hannes/laser v1.1.1
 	github.com/go-git/go-git/v5 v5.18.0
 	github.com/google/go-github/v85 v85.0.0
 	github.com/google/subcommands v1.2.0

@@ -1,7 +1,7 @@
 dario.cat/mergo v1.0.0 h1:AGCNq9Evsj31mOgNPcLyXc+4PNABt905YmuqPYYpBWk=
 dario.cat/mergo v1.0.0/go.mod h1:uNxQE+84aUszobStD9th8a29P2fMDhsBdgRYvZOxGmk=
-git.sr.ht/~hannes/laser v1.0.0 h1:4WMYDkh117STzLlYx4+3QCxcix3UJmkpRrcVXj2TDTg=
-git.sr.ht/~hannes/laser v1.0.0/go.mod h1:Ld6pIjmJTmcJhJANvRkH6CS3d9W1+17sIefaaJtlX5Y=
+git.sr.ht/~hannes/laser v1.1.1 h1:MzfE0S8WegM8/00MyPlbsFrPxVhTsb60/HqL9zeypQI=
+git.sr.ht/~hannes/laser v1.1.1/go.mod h1:Ld6pIjmJTmcJhJANvRkH6CS3d9W1+17sIefaaJtlX5Y=
 github.com/Microsoft/go-winio v0.5.2/go.mod h1:WpS1mjBmmwHBEWmogvA2mj8546UReBk4v8QkMxJ6pZY=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
