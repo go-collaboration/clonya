@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-const Version = "0.1.1"
+const Version = "0.1.2"
 
 func main() {
 	subcommands.Register(subcommands.HelpCommand(), "")
