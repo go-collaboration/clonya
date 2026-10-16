@@ -358,13 +358,20 @@ func (*Client) RepositoryDirname(repo common.Repository, full bool) string {
 }
 
 func isRateLimitError(err error) bool {
-	if errors.As(err, new(*github.RateLimitError)) {
-		log.Println("hit rate limit")
+	var rateLimitErr *github.RateLimitError
+	var abuseRateLimitErr *github.AbuseRateLimitError
+	if errors.As(err, &rateLimitErr) {
+		sleepTime := time.Until(rateLimitErr.Rate.Reset.Time)
+		log.Printf("hit rate limit, sleeping for %d seconds\n", sleepTime/time.Second)
+		time.Sleep(sleepTime)
 		return true
-	} else if errors.As(err, new(*github.AbuseRateLimitError)) {
-		const sleepTime = 120
-		log.Printf("hit secondary rate limit, sleeping for %d seconds\n", sleepTime)
-		time.Sleep(sleepTime * time.Second)
+	} else if errors.As(err, &abuseRateLimitErr) {
+		sleepTime := time.Duration(120 * time.Second)
+		if abuseRateLimitErr.RetryAfter != nil {
+			sleepTime = *abuseRateLimitErr.RetryAfter
+		}
+		log.Printf("hit secondary rate limit, sleeping for %d seconds\n", sleepTime/time.Second)
+		time.Sleep(sleepTime)
 		return true
 	}
 	return false
