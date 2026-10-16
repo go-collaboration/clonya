@@ -13,6 +13,7 @@ func main() {
 	subcommands.Register(subcommands.HelpCommand(), "")
 	subcommands.Register(subcommands.FlagsCommand(), "")
 	subcommands.Register(&initCmd{}, "")
+	subcommands.Register(&importCmd{}, "")
 	subcommands.Register(&updateCmd{}, "")
 	subcommands.Register(&upgradeCmd{}, "")
 	subcommands.Register(&checkoutCmd{}, "")
