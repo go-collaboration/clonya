@@ -1,9 +1,9 @@
 package main
 
 import (
+	"clonya/forge"
 	"context"
 	"flag"
-	"git.sr.ht/~hannes/clonya/forge"
 	"github.com/google/subcommands"
 	"log"
 )

@@ -1,8 +1,8 @@
 package forge
 
 import (
-	"git.sr.ht/~hannes/clonya/common"
-	"git.sr.ht/~hannes/clonya/forge/github"
+	"clonya/common"
+	"clonya/forge/github"
 )
 
 type Forge interface {

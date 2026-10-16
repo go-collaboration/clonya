@@ -1,10 +1,10 @@
 package main
 
 import (
+	"clonya/common"
+	"clonya/forge"
 	"context"
 	"flag"
-	"git.sr.ht/~hannes/clonya/common"
-	"git.sr.ht/~hannes/clonya/forge"
 	"github.com/google/subcommands"
 	"log"
 	"time"

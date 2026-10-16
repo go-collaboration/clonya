@@ -12,7 +12,7 @@ import (
 	"slices"
 	"time"
 
-	"git.sr.ht/~hannes/clonya/common"
+	"clonya/common"
 	"github.com/google/subcommands"
 )
 

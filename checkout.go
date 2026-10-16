@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"slices"
 
-	"git.sr.ht/~hannes/clonya/forge"
+	"clonya/forge"
 	"github.com/google/subcommands"
 )
 

@@ -1,4 +1,4 @@
-module git.sr.ht/~hannes/clonya
+module clonya
 
 go 1.25.3
 

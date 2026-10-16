@@ -1,9 +1,9 @@
 package main
 
 import (
+	"clonya/common"
 	"errors"
 	"fmt"
-	"git.sr.ht/~hannes/clonya/common"
 	"git.sr.ht/~hannes/laser"
 	"os"
 	"strconv"
